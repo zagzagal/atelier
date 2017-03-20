@@ -1,10 +1,10 @@
 package main
 
 import (
-	ad "bitbucket.org/zagzagal/AtelierComplete/AtelierData"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	ad "github.com/zagzagal/Atelier/Data"
 	"log"
 	"net/http"
 )
@@ -28,7 +28,7 @@ func ApiIndex(w http.ResponseWriter, r *http.Request) {
 
 func ItemList(w http.ResponseWriter, r *http.Request) {
 	var il []ilItem
-	for _, v := range DATA.GetAllItems() {
+	for _, v := range DATA.Items() {
 		link := "/api/item/" + v
 		il = append(il, ilItem{Name: v, Link: link})
 	}
@@ -61,28 +61,20 @@ func PathShow(w http.ResponseWriter, r *http.Request) {
 	start := vars["start"]
 	dest := vars["dest"]
 	var ip ipath
-	path, err := DATA.GetPath(dest, start)
-	if err == nil {
-		ip.DotFile = "digraph test {"
-		for k, v := range path.Item {
-			if k > 0 {
-				ip.DotFile += "\"" + path.Item[k-1] + "\"->\"" + v + "\";"
-			}
-			link := "/api/item/" + v
-			ip.Items = append(ip.Items, ilItem{Name: v, Link: link})
+	path := DATA.GetPath(dest, start)
+	ip.DotFile = "digraph test {"
+	for k, v := range path.Item {
+		if k > 0 {
+			ip.DotFile += "\"" + path.Item[k-1] + "\"->\"" + v + "\";"
 		}
-		ip.DotFile += "}"
-		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(ip); err != nil {
-			panic(err)
-		}
-	} else {
-		w.Header().Set("Content-Type", "application/json;charset-UTF-8")
-		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(ipath{}); err != nil {
-			panic(err)
-		}
+		link := "/api/item/" + v
+		ip.Items = append(ip.Items, ilItem{Name: v, Link: link})
+	}
+	ip.DotFile += "}"
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(ip); err != nil {
+		panic(err)
 	}
 }
 

@@ -1,9 +1,9 @@
 package main
 
 import (
-	ad "bitbucket.org/zagzagal/AtelierComplete/AtelierData"
 	"bufio"
 	"fmt"
+	ad "github.com/zagzagal/Atelier/Data"
 	"os"
 	"strings"
 )
@@ -31,7 +31,7 @@ func startCLIUI(dataFileName string) {
 		case "F":
 			data, dataFileName = getDataFromFile(bio, dataFileName)
 		case "W":
-			dataFileName = writeDataToFile(data.PrintDot(), dataFileName, bio)
+			dataFileName = writeDataToFile(data, dataFileName, bio)
 		case "U":
 			getUsed(data, bio)
 		case "I":
@@ -96,7 +96,7 @@ func printDot(d *ad.AtelierData) {
 }
 
 func listItems(d *ad.AtelierData) {
-	items := d.GetItemList()
+	items := d.Items()
 	for _, v := range items {
 		fmt.Printf("%s\n", v)
 	}
@@ -105,10 +105,7 @@ func listItems(d *ad.AtelierData) {
 func pathFind(d *ad.AtelierData, bio *bufio.Scanner) {
 	startItem := getInput("Enter the starting Item: ", bio)
 	endItem := getInput("Enter the destination Item: ", bio)
-	path, err := d.GetPath(strings.Title(endItem), strings.Title(startItem))
-	if err != nil {
-		fmt.Printf("%s\n", err)
-	}
+	path := d.GetPath(strings.Title(endItem), strings.Title(startItem))
 	fmt.Printf("%s\n", path.ToString())
 }
 
@@ -121,7 +118,7 @@ func getDataFromFile(bio *bufio.Scanner, def string) (*ad.AtelierData, string) {
 	return loadData(fileName), fileName
 }
 
-func writeDataToFile(data string, def string, bio *bufio.Scanner) string {
+func writeDataToFile(data *ad.AtelierData, def string, bio *bufio.Scanner) string {
 	i := fmt.Sprintf("Enter data file name: [%s]", def)
 	fileName := getInput(i, bio)
 	if fileName == "" {

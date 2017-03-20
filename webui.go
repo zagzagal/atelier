@@ -1,7 +1,7 @@
 package main
 
 import (
-	ad "bitbucket.org/zagzagal/AtelierComplete/AtelierData"
+	ad "github.com/zagzagal/Atelier/Data"
 	"log"
 	"net/http"
 )

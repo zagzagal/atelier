@@ -1,9 +1,9 @@
 package main
 
 import (
-	ad "bitbucket.org/zagzagal/AtelierComplete/AtelierData"
 	"bufio"
 	"fmt"
+	ad "github.com/zagzagal/Atelier/Data"
 	"strings"
 )
 
