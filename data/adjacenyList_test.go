@@ -1,4 +1,4 @@
-package AtelierData
+package Data
 
 import "testing"
 

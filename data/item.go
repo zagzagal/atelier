@@ -1,4 +1,4 @@
-package AtelierData
+package Data
 
 // Models and item from the atelier series
 type Item struct {

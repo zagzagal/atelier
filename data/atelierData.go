@@ -1,6 +1,6 @@
 // Package alows for the data model for the atelier series
 // contains an item library and pathing functions
-package AtelierData
+package Data
 
 /*import (
 	"errors"

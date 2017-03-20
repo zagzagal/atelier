@@ -1,4 +1,4 @@
-package AtelierData
+package Data
 
 type ItemPath struct {
 	Item []string `json`
