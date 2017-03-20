@@ -2,14 +2,11 @@
 // contains an item library and pathing functions
 package Data
 
-/*import (
-	"errors"
-	"github.com/zagzagal/queue"
+import (
+	//"errors"
+	//"github.com/zagzagal/queue"
 	//"fmt"
-	"strings"
-
-	"github.com/cayleygraph/cayley"
-	"github.com/cayleygraph/cayley/quad"
+	"container/heap"
 )
 
 const infinite = 99999
@@ -18,24 +15,22 @@ const theta = 0
 
 // The main datasctruct for the library
 type AtelierData struct {
-	id2Name map[int]string
-	name2Id map[string]int
-
-	graph *cayley.Handle
+	items map[string]Item
+	graph AdjacencyList
 }
 
 // Returns a new instatiated instace of the dataset
 func NewAtelier() *AtelierData {
 	a := new(AtelierData)
-	a.id2Name = map[int]string{}
-	a.name2Id = map[string]int{}
-	a.graph, _ = cayley.NewMemoryGraph()
+	a.items = make(map[string]Item)
+	a.graph = make(AdjacencyList)
 	return a
 }
 
 // Adds an item to the dataset
 func (a *AtelierData) AddItem(i Item) {
 	if i.Name != "" {
+		a.items[i.Name] = i
 		a.addNode(i.Name)
 		for _, v := range i.Ingredients {
 			if !a.IsItem(v) {
@@ -52,7 +47,54 @@ func (a *AtelierData) AddItem(i Item) {
 	}
 }
 
-func (a *AtelierData) floydWarshallAlg() {
+func (a AtelierData) dijkstra(s string) (map[string]int, map[string]string) {
+	dist := make(map[string]int)
+	prev := make(map[string]string)
+
+	nodes := a.Nodes()
+	q := make(MinPriorityQueue, len(nodes))
+	dist[s] = 0
+
+	for k, v := range nodes {
+		if v != s {
+			dist[v] = infinite
+			prev[v] = ""
+		}
+		q[k] = &QItem{
+			value:    v,
+			priority: dist[v],
+			index:    k,
+		}
+	}
+	heap.Init(&q)
+
+	for q.Len() > 0 {
+		u := heap.Pop(&q).(*QItem).value
+		for _, e := range a.graph.getEdges(u) {
+			v := e.tail
+			alt := dist[u] + 1
+			if alt < dist[v] {
+				dist[v] = alt
+				prev[v] = u
+				it := q.get(v)
+				q.update(it, v, alt)
+			}
+		}
+	}
+	return dist, prev
+}
+
+func (a AtelierData) getShortestPath(s, d string) []string {
+	_, prev := a.dijkstra(s)
+
+	ans := []string{d}
+	for v, ok := prev[d]; ok; d = v {
+		ans = append([]string{v}, ans...)
+	}
+	return ans
+}
+
+/*func (a *AtelierData) floydWarshallAlg() {
 	n := len(a.id2Name)
 	dist := make([][]int, n)
 	next := make([][]int, n)
@@ -84,25 +126,14 @@ func (a *AtelierData) floydWarshallAlg() {
 	a.floydDist = dist
 	a.floydNext = next
 }
+*/
 
 func (a *AtelierData) addNode(s string) {
-	n := a.graph.NewNode()
-	a.graph.AddNode(n)
-	a.id2Name[n.ID()] = s
-	a.name2Id[s] = n.ID()
+	a.graph.AddNode(s)
 }
 
 func (a *AtelierData) addEdge(start, dest string) error {
-	s, err := a.getNode(start)
-	if err != nil {
-		return errors.New("node " + start + " does not exist")
-	}
-	d, err := a.getNode(dest)
-	if err != nil {
-		return errors.New("node " + dest + " does not exist")
-	}
-	a.graph.AddDirectedEdge(&concrete.Edge{s, d}, 2)
-	a.floydWarshallAlg()
+	a.graph.AddEdge(start, dest)
 	return nil
 }
 
@@ -116,7 +147,7 @@ func (a *AtelierData) AddPath(start, dest string) error {
 	return a.addEdge(start, dest)
 }
 
-func (a *AtelierData) getNode(s string) (graph.Node, error) {
+/*func (a *AtelierData) getNode(s string) (graph.Node, error) {
 	id, err := a.name2Id[s]
 	if err != true {
 		return nil, errors.New("node does not exist")
@@ -129,33 +160,25 @@ func (a *AtelierData) getNode(s string) (graph.Node, error) {
 	}
 	return nil, nil
 }
-
+*/
 // returns the dot file representation of the dataset
 func (a *AtelierData) PrintDot() (s string) {
 	s = "digraph test {\n"
-	for _, v := range a.graph.EdgeList() {
-		s += "  " + a.printEdgeForDot(v) + ";\n"
+	for _, v := range a.graph.Edges() {
+		s += "  " + v.String() + ";\n"
 	}
 	return s + "}"
 }
 
-func (a *AtelierData) printEdgeForDot(e graph.Edge) string {
-	return "\"" + a.id2Name[e.Head().ID()] + "\"" + " -> " + "\"" +
-		a.id2Name[e.Tail().ID()] + "\""
-}
-
 // returns the path from start to dest as a string
-func (a *AtelierData) GetPath(start, dest string) (ItemPath, error) {
-	x, err := a.findPath(start, dest)
-	if err == nil {
-		var ans ItemPath
-		ans.Item = x
-		return ans, err
-	}
-	return ItemPath{Item: nil}, err
+func (a *AtelierData) GetPath(start, dest string) ItemPath {
+	x := a.getShortestPath(start, dest)
+	var ans ItemPath
+	ans.Item = x
+	return ans
 }
 
-func (a *AtelierData) findFloydPath(start, dest string) []string {
+/*func (a *AtelierData) findFloydPath(start, dest string) []string {
 	u, _ := a.getNode(start)
 	v, _ := a.getNode(dest)
 	path := queue.NewQueue()
@@ -206,41 +229,37 @@ func (a *AtelierData) findPath(start, dest string) ([]string, error) {
 	}
 	return ans, nil
 }
-
+*/
 func (a *AtelierData) printNodeList() (s string) {
-	nodes := a.graph.NodeList()
+	nodes := a.graph.Nodes()
 	for _, v := range nodes {
-		s += a.id2Name[v.ID()] + "\n"
+		s += v + "\n"
 	}
 	return
 }
 
 // Returns a list of all the items (not types) in the dataset
-func (a *AtelierData) GetItemList() (s []string) {
-	nodes := a.graph.NodeList()
-	for _, v := range nodes {
-		if !strings.Contains(a.id2Name[v.ID()], "(") {
-			s = append(s, a.id2Name[v.ID()])
-		}
+func (a *AtelierData) Items() (s []string) {
+	for _, v := range a.items {
+		s = append(s, v.Name)
 	}
 	return
 }
 
 // Returns a list of all the items and item types in the dataset
-func (a *AtelierData) GetAllItems() (s []string) {
-	for _, v := range a.graph.NodeList() {
-		s = append(s, a.id2Name[v.ID()])
+func (a *AtelierData) Nodes() (s []string) {
+	for _, v := range a.graph.Nodes() {
+		s = append(s, v)
 	}
 	return
 }
 
 // checks to see if the item is in the dataset
 func (a *AtelierData) IsItem(s string) bool {
-	_, v := a.name2Id[s]
-	return v
+	return a.graph.Contains(s)
 }
 
-func (a *AtelierData) usedIn(s string) string {
+/*func (a *AtelierData) usedIn(s string) string {
 	if !a.IsItem(s) {
 		return ""
 	}
@@ -254,9 +273,9 @@ func (a *AtelierData) usedIn(s string) string {
 		}
 		return ""
 	}, 2)
-}
+}*/
 
-func (a *AtelierData) mapPre(n graph.Node, f func(graph.Node) string, depth int) string {
+/*func (a *AtelierData) mapPre(n graph.Node, f func(graph.Node) string, depth int) string {
 	if depth >= 1 {
 		s := f(n)
 		for _, v := range a.graph.Predecessors(n) {
@@ -265,9 +284,9 @@ func (a *AtelierData) mapPre(n graph.Node, f func(graph.Node) string, depth int)
 		return s
 	}
 	return f(n)
-}
+}*/
 
-func (a *AtelierData) findNode(s string) (graph.Node, bool) {
+/*func (a *AtelierData) findNode(s string) (graph.Node, bool) {
 	v, ok := a.name2Id[s]
 	if ok {
 		for _, n := range a.graph.NodeList() {
@@ -277,9 +296,9 @@ func (a *AtelierData) findNode(s string) (graph.Node, bool) {
 		}
 	}
 	return nil, false
-}
+}*/
 
-func (a *AtelierData) findNodeID(i int) (graph.Node, bool) {
+/*func (a *AtelierData) findNodeID(i int) (graph.Node, bool) {
 	_, ok := a.id2Name[i]
 	if ok {
 		for _, n := range a.graph.NodeList() {
@@ -289,21 +308,12 @@ func (a *AtelierData) findNodeID(i int) (graph.Node, bool) {
 		}
 	}
 	return nil, false
-}
+}*/
 
 func (a *AtelierData) GetItemData(s string) (i Item) {
-	n, ok := a.findNode(s)
+	n, ok := a.items[s]
 	if ok {
-		i.Name = s
-		for _, r := range a.graph.Predecessors(n) {
-			if strings.Contains(a.id2Name[r.ID()], "(") {
-				i.Types = append(i.Types, a.id2Name[r.ID()])
-			}
-		}
-		for _, r := range a.graph.Successors(n) {
-			i.Ingredients = append(i.Ingredients, a.id2Name[r.ID()])
-		}
-		return
+		return n
 	}
-	return
-}*/
+	return Item{}
+}

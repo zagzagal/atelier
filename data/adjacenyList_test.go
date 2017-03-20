@@ -3,7 +3,7 @@ package Data
 import "testing"
 
 func TestContains(t *testing.T) {
-	a := adjList{"This", "is", "A", "Test"}
+	a := adjList{"This": true, "is": true, "A": true, "Test": true}
 	t.Logf("%v", a)
 	if !a.contains("This") {
 		t.Error("TestContains: contains failed")
@@ -11,7 +11,7 @@ func TestContains(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	a := adjList{"this", "is", "A", "Test"}
+	a := adjList{"this": true, "is": true, "A": true, "Test": true}
 	t.Logf("TestAdd: Before: %v", a)
 	a.add("boo")
 	t.Logf("TestAdd: After: %v", a)
@@ -28,13 +28,43 @@ func TestALContains(t *testing.T) {
 	}
 }
 
-func TestGetEdges(t *testing.T) {
+func TestEdges(t *testing.T) {
+	a := adjList{"this": true, "is": true, "a": true, "test": true}
+	t.Logf("TestEdge: %v", a)
+	e := a.edges()
+	t.Logf("TestEdge: %v", e)
+	f := func(s string) bool {
+		for _, v := range e {
+			if v == s {
+				return false
+			}
+		}
+		t.Logf("TestNodes: %v not found", s)
+		return true
+	}
+
+	if f("this") && f("is") && f("a") && f("test") {
+		t.Error("TestEdges: edges didn't match up")
+	}
+}
+
+func TestALEdges(t *testing.T) {
 	a := make(AdjacencyList)
 	a.AddEdge("this", "that")
 	a.AddEdge("this", "also")
-	e := a.GetEdges("this")
+	e := a.getEdges("this")
 	t.Logf("TestGetEdges: %v", e)
-	if e[0] != "that" || e[1] != "also" {
+	f := func(s string) bool {
+		for _, v := range e {
+			if v.tail == s {
+				return false
+			}
+		}
+		t.Logf("TestNodes: %v not found", s)
+		return true
+	}
+
+	if f("that") || f("also") {
 		t.Error("TestGetEdges: edges didn't match up")
 	}
 }
@@ -49,8 +79,8 @@ func TestNodes(t *testing.T) {
 		t.Error("TestNodes: nodecount doesn't match")
 	}
 
-	f := func(a []string, s string) bool {
-		for _, v := range a {
+	f := func(s string) bool {
+		for _, v := range e {
 			if v == s {
 				return false
 			}
@@ -59,7 +89,7 @@ func TestNodes(t *testing.T) {
 		return true
 	}
 
-	if f(e, "also") && f(e, "this") && f(e, "that") {
+	if f("also") && f("this") && f("that") {
 		t.Error("TestNodes: nodes didn't match up")
 	}
 }
