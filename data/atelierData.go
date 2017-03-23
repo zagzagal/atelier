@@ -36,13 +36,13 @@ func (a *AtelierData) AddItem(i Item) {
 			if !a.IsItem(v) {
 				a.addNode(v)
 			}
-			a.addEdge(i.Name, v)
+			a.addEdge(v, i.Name)
 		}
 		for _, v := range i.Types {
 			if !a.IsItem(v) {
 				a.addNode(v)
 			}
-			a.addEdge(v, i.Name)
+			a.addEdge(i.Name, v)
 		}
 	}
 }
@@ -87,46 +87,23 @@ func (a AtelierData) dijkstra(s string) (map[string]int, map[string]string) {
 func (a AtelierData) getShortestPath(s, d string) []string {
 	_, prev := a.dijkstra(s)
 
-	ans := []string{d}
-	for v, ok := prev[d]; ok; d = v {
-		ans = append([]string{v}, ans...)
-	}
-	return ans
-}
-
-/*func (a *AtelierData) floydWarshallAlg() {
-	n := len(a.id2Name)
-	dist := make([][]int, n)
-	next := make([][]int, n)
-	for k := 0; k < n; k++ {
-		dist[k] = make([]int, n)
-		next[k] = make([]int, n)
-		for j := 0; j < n; j++ {
-			dist[k][j] = infinite
-			next[k][j] = null
-		}
-}
-	for _, v := range a.graph.Nodes() {
-		dist[v.ID()-1][v.ID()-1] = theta
-	}
-	for _, v := range a.graph.Edges() {
-		dist[v.From().ID()-1][v.To().ID()-1] = 1
-		next[v.From().ID()-1][v.To().ID()-1] = v.To().ID() - 1
-	}
-	for k := 0; k < n; k++ {
-		for i := 0; i < n; i++ {
-			for j := 0; j < n; j++ {
-				if dist[i][j] > (dist[i][k] + dist[k][j]) {
-					dist[i][j] = dist[i][k] + dist[k][j]
-					next[i][j] = next[i][k]
-				}
+	ans := []string{}
+	m, ok := prev[d]
+	done := false
+	for ok && !done {
+		ans = append([]string{d}, ans...)
+		if m != s {
+			d = m
+			m, ok = prev[d]
+			if !ok {
+				return []string{}
 			}
+		} else {
+			done = true
 		}
 	}
-	a.floydDist = dist
-	a.floydNext = next
+	return append([]string{m}, ans...)
 }
-*/
 
 func (a *AtelierData) addNode(s string) {
 	a.graph.AddNode(s)
@@ -147,20 +124,6 @@ func (a *AtelierData) AddPath(start, dest string) error {
 	return a.addEdge(start, dest)
 }
 
-/*func (a *AtelierData) getNode(s string) (graph.Node, error) {
-	id, err := a.name2Id[s]
-	if err != true {
-		return nil, errors.New("node does not exist")
-	}
-	nodes := a.graph.NodeList()
-	for _, v := range nodes {
-		if v.ID() == id {
-			return v, nil
-		}
-	}
-	return nil, nil
-}
-*/
 // returns the dot file representation of the dataset
 func (a *AtelierData) PrintDot() (s string) {
 	s = "digraph test {\n"
@@ -178,58 +141,6 @@ func (a *AtelierData) GetPath(start, dest string) ItemPath {
 	return ans
 }
 
-/*func (a *AtelierData) findFloydPath(start, dest string) []string {
-	u, _ := a.getNode(start)
-	v, _ := a.getNode(dest)
-	path := queue.NewQueue()
-	var ans []string
-
-	if a.floydNext[u.ID()-1][v.ID()-1] == null {
-		return nil
-	}
-	path.Push(a.id2Name[u.ID()])
-	for u.ID() != v.ID() {
-		u, _ = a.findNodeID(a.floydNext[u.ID()-1][v.ID()-1] + 1)
-		path.Push(a.id2Name[u.ID()])
-	}
-	for !path.IsEmpty() {
-		n, _ := path.Pop()
-		ans = append(ans, n.(string))
-	}
-	return ans
-}
-
-func (a *AtelierData) findPath(start, dest string) ([]string, error) {
-	s, err := a.getNode(start)
-	if err != nil {
-		return nil, errors.New("node " + start + " does not exist")
-	}
-	d, err := a.getNode(dest)
-	if err != nil {
-		return nil, errors.New("node " + dest + " does not exist")
-	}
-	path, _ := search.BreadthFirstSearch(s, d, a.graph)
-	if path == nil {
-		return nil, errors.New("there is no path")
-	}
-
-	var ans []string
-	q := queue.NewQueue()
-	for _, v := range path {
-		q.Push(a.id2Name[v.ID()])
-	}
-	for !q.IsEmpty() {
-		if q.Size() != 1 {
-			n, _ := q.Pop()
-			ans = append(ans, n.(string))
-		} else {
-			n, _ := q.Pop()
-			ans = append(ans, n.(string))
-		}
-	}
-	return ans, nil
-}
-*/
 func (a *AtelierData) printNodeList() (s string) {
 	nodes := a.graph.Nodes()
 	for _, v := range nodes {
@@ -273,41 +184,6 @@ func (a *AtelierData) IsItem(s string) bool {
 		}
 		return ""
 	}, 2)
-}*/
-
-/*func (a *AtelierData) mapPre(n graph.Node, f func(graph.Node) string, depth int) string {
-	if depth >= 1 {
-		s := f(n)
-		for _, v := range a.graph.Predecessors(n) {
-			s += a.mapPre(v, f, depth-1)
-		}
-		return s
-	}
-	return f(n)
-}*/
-
-/*func (a *AtelierData) findNode(s string) (graph.Node, bool) {
-	v, ok := a.name2Id[s]
-	if ok {
-		for _, n := range a.graph.NodeList() {
-			if n.ID() == v {
-				return n, true
-			}
-		}
-	}
-	return nil, false
-}*/
-
-/*func (a *AtelierData) findNodeID(i int) (graph.Node, bool) {
-	_, ok := a.id2Name[i]
-	if ok {
-		for _, n := range a.graph.NodeList() {
-			if n.ID() == i {
-				return n, true
-			}
-		}
-	}
-	return nil, false
 }*/
 
 func (a *AtelierData) GetItemData(s string) (i Item) {
