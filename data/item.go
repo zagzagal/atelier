@@ -2,9 +2,9 @@ package Data
 
 // Models and item from the atelier series
 type Item struct {
-	Name        string   `json`
-	Ingredients []string `json`
-	Types       []string `json`
+	Name        string   `json:"name"`
+	Ingredients []string `json:"ingredients"`
+	Types       []string `json:"types"`
 }
 
 // returns the item data as a string
