@@ -2,22 +2,43 @@ package Data
 
 import "testing"
 
-func contains(a []string, s string) bool {
+func contains(t *testing.T, a []string, s string) bool {
 	for _, v := range a {
 		if v == s {
 			return true
 		}
 	}
+	t.Logf("Contains: %v not in %v", s, a)
 	return false
 }
 
-func containsAll(a []string, s ...string) bool {
+func containsAll(t *testing.T, a []string, s ...string) bool {
 	for _, v := range s {
-		if !contains(a, v) {
+		if !contains(t, a, v) {
 			return false
 		}
 	}
 	return true
+}
+
+func checkAdd(t *testing.T, a AtelierData, i Item) {
+	adj, ok := a.graph[i.Name]
+	t.Logf("CheckAdd: [ Item: %v ] [ Graph: %v ]", i, adj)
+	if !ok {
+		t.Errorf("Item %v is not in graph", i.Name)
+	}
+	for k, _ := range adj {
+		if !contains(t, i.Types, k) {
+			t.Errorf("Item %v, type %v is not in graph [%v]",
+				i.Name, k, adj)
+		}
+	}
+	for _, v := range i.Ingredients {
+		if !contains(t, a.graph[v].edges(), i.Name) {
+			t.Errorf("Itme %v, type %v ins not in graph [%v]",
+				i.Name, i.Name, v)
+		}
+	}
 }
 
 func TestNewAtelier(t *testing.T) {
@@ -36,17 +57,6 @@ func getAtelier() *AtelierData {
 	return a
 }
 
-func TestAddItem(t *testing.T) {
-	a := NewAtelier()
-	i := Item{"Test", []string{"test1", "test2"}, []string{"type1", "type2"}}
-	a.AddItem(i)
-	t.Logf("TestAddItem: %v", a.Nodes())
-	if !containsAll(a.Nodes(), "Test",
-		"test1", "test2", "type1", "type2") {
-		t.Error("AddItem: something is missing")
-	}
-}
-
 func TestAddNode(t *testing.T) {
 	a := getAtelier()
 	a.addNode("newTest")
@@ -58,7 +68,17 @@ func TestAddNode(t *testing.T) {
 func TestAddEdge(t *testing.T) {
 	a := getAtelier()
 	a.addEdge("test1", "test2")
-	if !a.graph["test1"].contains("test2") {
+	a.addEdge("test1", "test3")
+	a.addEdge("test1", "test4")
+	b := a.graph["test1"]
+	n, ok := a.graph["test2"]
+	if !ok {
+		t.Error("addEdge: not adding nodes right")
+	}
+	if contains(t, n.edges(), "test1") {
+		t.Error("addEdge: reversing edges")
+	}
+	if !containsAll(t, b.edges(), "test2", "test3", "test4") {
 		t.Error("addEdge not working")
 	}
 }
@@ -68,6 +88,18 @@ func TestIsItem(t *testing.T) {
 	if !a.IsItem("Test") {
 		t.Error("IsItem: not found")
 	}
+}
+
+func TestAddItem(t *testing.T) {
+	a := NewAtelier()
+	i := Item{"Test", []string{"test1", "test2"}, []string{"type1", "type2"}}
+	a.AddItem(i)
+	t.Logf("TestAddItem: %v", a.Nodes())
+	if !containsAll(t, a.Nodes(), "Test",
+		"test1", "test2", "type1", "type2") {
+		t.Error("AddItem: something is missing")
+	}
+	checkAdd(t, *a, i)
 }
 
 func TestDijkstra(t *testing.T) {

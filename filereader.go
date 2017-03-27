@@ -21,11 +21,14 @@ func loadData(fName string) *ad.AtelierData {
 	dec := gob.NewDecoder(file)
 	var i ad.Item
 	for err = dec.Decode(&i); err != io.EOF; err = dec.Decode(&i) {
-		data.AddItem(i)
+		log.Printf("Json: %v", i)
+		data.AddItem(i.Copy())
 		if err != nil && err != io.EOF {
 			log.Fatal(err)
 		}
+		log.Printf("data: %v", data.GetRawItemData(i.Name))
 	}
+	log.Printf("%v", data)
 	return data
 }
 

@@ -15,7 +15,7 @@ type ilItem struct {
 }
 
 type itemlist struct {
-	Item []ilItem `json`
+	Item []ilItem `json:"Items"`
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -28,13 +28,15 @@ func ApiIndex(w http.ResponseWriter, r *http.Request) {
 
 func ItemList(w http.ResponseWriter, r *http.Request) {
 	var il []ilItem
+	var list itemlist
 	for _, v := range DATA.Items() {
 		link := "/api/item/" + v
 		il = append(il, ilItem{Name: v, Link: link})
 	}
+	list.Item = il
 	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(il); err != nil {
+	if err := json.NewEncoder(w).Encode(list); err != nil {
 		panic(err)
 	}
 }
@@ -61,7 +63,7 @@ func PathShow(w http.ResponseWriter, r *http.Request) {
 	start := vars["start"]
 	dest := vars["dest"]
 	var ip ipath
-	path := DATA.GetPath(dest, start)
+	path := DATA.GetPath(start, dest)
 	ip.DotFile = "digraph test {"
 	for k, v := range path.Item {
 		if k > 0 {

@@ -2,54 +2,22 @@ package Data
 
 import "testing"
 
-func TestContains(t *testing.T) {
-	a := adjList{"This": true, "is": true, "A": true, "Test": true}
-	t.Logf("%v", a)
-	if !a.contains("This") {
+func TestConstains(t *testing.T) {
+	var a AdjacencyList
+	a = AdjacencyList{
+		"Test":  subList{"this": true, "is": true, "A": true, "Test": true},
+		"Test2": subList{"this": true, "is": true, "A": true, "Test": true},
+		"Test3": subList{"this": true, "is": true, "A": true, "Test": true}}
+	if !a.Contains("Test") || !a.Contains("Test2") || !a.Contains("Test3") {
 		t.Error("TestContains: contains failed")
 	}
 }
 
-func TestAdd(t *testing.T) {
-	a := adjList{"this": true, "is": true, "A": true, "Test": true}
-	t.Logf("TestAdd: Before: %v", a)
-	a.add("boo")
-	t.Logf("TestAdd: After: %v", a)
-	if !a.contains("boo") {
-		t.Error("TestAdd: Add Failed")
-	}
-}
-
-func TestALContains(t *testing.T) {
-	a := make(AdjacencyList)
-	a.AddEdge("this", "that")
-	if !a.Contains("this") {
-		t.Error("TestALContains: Contains Failed")
-	}
-}
-
-func TestEdges(t *testing.T) {
-	a := adjList{"this": true, "is": true, "a": true, "test": true}
-	t.Logf("TestEdge: %v", a)
-	e := a.edges()
-	t.Logf("TestEdge: %v", e)
-	f := func(s string) bool {
-		for _, v := range e {
-			if v == s {
-				return false
-			}
-		}
-		t.Logf("TestNodes: %v not found", s)
-		return true
-	}
-
-	if f("this") && f("is") && f("a") && f("test") {
-		t.Error("TestEdges: edges didn't match up")
-	}
-}
-
 func TestALEdges(t *testing.T) {
-	a := make(AdjacencyList)
+	a := newAdjList()
+	if a == nil {
+		t.Error("NewAdjList failed")
+	}
 	a.AddEdge("this", "that")
 	a.AddEdge("this", "also")
 	e := a.getEdges("this")
@@ -70,7 +38,7 @@ func TestALEdges(t *testing.T) {
 }
 
 func TestNodes(t *testing.T) {
-	a := make(AdjacencyList)
+	a := newAdjList()
 	a.AddEdge("this", "that")
 	a.AddEdge("also", "this")
 	e := a.Nodes()

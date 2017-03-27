@@ -5,8 +5,8 @@ package Data
 import (
 	//"errors"
 	//"github.com/zagzagal/queue"
-	//"fmt"
 	"container/heap"
+	//"log"
 )
 
 const infinite = 99999
@@ -29,19 +29,15 @@ func NewAtelier() *AtelierData {
 
 // Adds an item to the dataset
 func (a *AtelierData) AddItem(i Item) {
+	//log.Printf("%v", i)
 	if i.Name != "" {
 		a.items[i.Name] = i
+		//log.Printf("%v added: %v [%v]", i.Name, a.items[i.Name], i.equals(a.items[i.Name]))
 		a.addNode(i.Name)
 		for _, v := range i.Ingredients {
-			if !a.IsItem(v) {
-				a.addNode(v)
-			}
 			a.addEdge(v, i.Name)
 		}
 		for _, v := range i.Types {
-			if !a.IsItem(v) {
-				a.addNode(v)
-			}
 			a.addEdge(i.Name, v)
 		}
 	}
@@ -106,6 +102,7 @@ func (a AtelierData) getShortestPath(s, d string) []string {
 }
 
 func (a *AtelierData) addNode(s string) {
+	//log.Println("Adding Node ", s)
 	a.graph.AddNode(s)
 }
 
@@ -165,7 +162,7 @@ func (a *AtelierData) Nodes() (s []string) {
 	return
 }
 
-// checks to see if the item is in the dataset
+// checks to see if the item is in the datase
 func (a *AtelierData) IsItem(s string) bool {
 	return a.graph.Contains(s)
 }
@@ -186,10 +183,18 @@ func (a *AtelierData) IsItem(s string) bool {
 	}, 2)
 }*/
 
-func (a *AtelierData) GetItemData(s string) (i Item) {
+func (a AtelierData) GetItemData(s string) (i Item) {
 	n, ok := a.items[s]
+	//log.Printf("[%v] %v", ok, n)
+	//log.Printf("Item List: %v", a.Nodes())
 	if ok {
 		return n
 	}
 	return Item{}
+}
+
+func (a AtelierData) GetRawItemData(s string) string {
+	n, _ := a.graph[s]
+	//log.Printf("[%v] %v", ok, n)
+	return s + " " + n.String()
 }

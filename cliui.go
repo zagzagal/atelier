@@ -140,7 +140,7 @@ func itemData(d *ad.AtelierData, bio *bufio.Scanner) {
 	i := getInput("Enter Item to examine: ", bio)
 	if i != "" {
 		item := d.GetItemData(strings.Title(i))
-		fmt.Printf("%s\n", item.ToString())
+		fmt.Printf("%s\n", item.String())
 	}
 }
 

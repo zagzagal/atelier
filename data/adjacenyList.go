@@ -2,46 +2,6 @@ package Data
 
 import ()
 
-type adjList map[string]bool
-
-func (a *adjList) add(s string) {
-	(*a)[s] = true
-}
-
-func (a *adjList) remove(s string) {
-	delete(*a, s)
-}
-
-func (a adjList) contains(s string) bool {
-	_, ok := a[s]
-	return ok
-}
-
-func (a adjList) edges() []string {
-	s := make([]string, len(a))
-	i := 0
-	for k, _ := range a {
-		s[i] = k
-		i++
-	}
-	return s
-}
-
-func (a adjList) String() string {
-	s := "[ "
-	i := 0
-	for k, _ := range a {
-		s += k
-		if i < len(a)-1 {
-			s += " -> "
-		} else {
-			s += " ]"
-		}
-		i++
-	}
-	return s
-}
-
 type Edge struct {
 	head string
 	tail string
@@ -51,37 +11,53 @@ func (e Edge) String() string {
 	return "\"" + e.head + "\" -> \"" + e.tail + "\""
 }
 
-type AdjacencyList map[string]*adjList
+type AdjacencyList map[string]subList
+
+func newAdjList() *AdjacencyList {
+	var a AdjacencyList
+	a = make(AdjacencyList)
+	return &a
+}
 
 // Contains returns true if an item exists
 func (a AdjacencyList) Contains(s string) bool {
-	_, ok := a[s]
-	return ok
+	for k, _ := range a {
+		if k == s {
+			return true
+		}
+	}
+	return false
 }
 
 func (a *AdjacencyList) AddEdge(s, d string) {
-	a.AddNode(s)
-	a.AddNode(d)
-	(*a)[s].add(d)
+	if !a.Contains(s) {
+		a.AddNode(s)
+	}
+	if !a.Contains(d) {
+		a.AddNode(d)
+	}
+	(*a)[s] = (*a)[s].add(d)
 }
 
 func (a *AdjacencyList) RemoveEdge(s, d string) {
 	if a.Contains(s) {
-		(*a)[s].remove(d)
+		(*a)[s] = (*a)[s].remove(d)
 	}
 }
 
 func (a *AdjacencyList) AddNode(s string) {
 	if !a.Contains(s) {
-		(*a)[s] = &adjList{}
+		(*a)[s] = newSubList()
 	}
 }
 
 func (a *AdjacencyList) RemoveNode(s string) {
-	delete(*a, s)
 	for _, v := range *a {
-		v.remove(s)
+		if v.contains(s) {
+			v.remove(s)
+		}
 	}
+	delete(*a, s)
 }
 
 func (a AdjacencyList) getEdges(s string) []Edge {
@@ -102,6 +78,16 @@ func (a AdjacencyList) Edges() []Edge {
 		ans = append(ans, a.getEdges(k)...)
 	}
 	return ans
+}
+
+func (a AdjacencyList) String() string {
+	var s string
+	s += "[ "
+	for k, v := range a {
+		s += "{ " + k + " : " + v.String() + " }"
+	}
+	s += " ] "
+	return s
 }
 
 func (a AdjacencyList) Nodes() []string {
