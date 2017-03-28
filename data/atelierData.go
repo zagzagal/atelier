@@ -1,25 +1,20 @@
-// Package alows for the data model for the atelier series
+// Package Data alows for the data model for the atelier series
 // contains an item library and pathing functions
 package Data
 
-import (
-	//"errors"
-	//"github.com/zagzagal/queue"
-	"container/heap"
-	//"log"
-)
+import ()
 
 const infinite = 99999
 const null = -99999
 const theta = 0
 
-// The main datasctruct for the library
+//AtelierData is the main datasctruct for the library
 type AtelierData struct {
 	items map[string]Item
 	graph AdjacencyList
 }
 
-// Returns a new instatiated instace of the dataset
+//NewAtelier returns a new instatiated instace of the dataset
 func NewAtelier() *AtelierData {
 	a := new(AtelierData)
 	a.items = make(map[string]Item)
@@ -27,7 +22,7 @@ func NewAtelier() *AtelierData {
 	return a
 }
 
-// Adds an item to the dataset
+//AddItem adds an item to the dataset
 func (a *AtelierData) AddItem(i Item) {
 	//log.Printf("%v", i)
 	if i.Name != "" {
@@ -43,7 +38,7 @@ func (a *AtelierData) AddItem(i Item) {
 	}
 }
 
-// Remove an Item from the dataset, and all relationships
+//RemoveItem removes an Item from the dataset, and all relationships
 func (a *AtelierData) RemoveItem(i Item) {
 	_, ok := a.items[i.Name]
 	if !ok {
@@ -60,6 +55,8 @@ func (a *AtelierData) RemoveItem(i Item) {
 	delete(a.items, i.Name)
 }
 
+//UpdateItem updates an Item from the dataset. It is a helper for
+// RemoveItem(i) >> AddItem(i)
 func (a *AtelierData) UpdateItem(i Item) {
 	a.RemoveItem(i)
 	a.AddItem(i)
@@ -84,10 +81,10 @@ func (a AtelierData) dijkstra(s string) (map[string]int, map[string]string) {
 			index:    k,
 		}
 	}
-	heap.Init(&q)
+	q.Init()
 
 	for q.Len() > 0 {
-		u := heap.Pop(&q).(*QItem).value
+		u := q.HPop().value
 		for _, e := range a.graph.getEdges(u) {
 			v := e.tail
 			alt := dist[u] + 1
@@ -133,6 +130,8 @@ func (a *AtelierData) addEdge(start, dest string) error {
 	return nil
 }
 
+//AddPath adds a relationship between start and destination creating nodes
+//if necessary
 func (a *AtelierData) AddPath(start, dest string) error {
 	if !a.IsItem(start) {
 		a.addNode(start)
@@ -143,7 +142,7 @@ func (a *AtelierData) AddPath(start, dest string) error {
 	return a.addEdge(start, dest)
 }
 
-// returns the dot file representation of the dataset
+//PrintDot returns the dot file representation of the dataset
 func (a *AtelierData) PrintDot() (s string) {
 	s = "digraph test {\n"
 	for _, v := range a.graph.Edges() {
@@ -152,7 +151,7 @@ func (a *AtelierData) PrintDot() (s string) {
 	return s + "}"
 }
 
-// returns the path from start to dest as a string
+//GetPath returns the path from start to dest
 func (a *AtelierData) GetPath(start, dest string) ItemPath {
 	x := a.getShortestPath(start, dest)
 	var ans ItemPath
@@ -168,7 +167,7 @@ func (a *AtelierData) printNodeList() (s string) {
 	return
 }
 
-// Returns a list of all the items (not types) in the dataset
+//Items returns a list of all the items (not types) in the dataset
 func (a *AtelierData) Items() (s []string) {
 	for _, v := range a.items {
 		s = append(s, v.Name)
@@ -176,7 +175,7 @@ func (a *AtelierData) Items() (s []string) {
 	return
 }
 
-// Returns a list of all the items and item types in the dataset
+//Nodes returns a list of all the items and item types in the dataset
 func (a *AtelierData) Nodes() (s []string) {
 	for _, v := range a.graph.Nodes() {
 		s = append(s, v)
@@ -184,7 +183,7 @@ func (a *AtelierData) Nodes() (s []string) {
 	return
 }
 
-// checks to see if the item is in the datase
+//IsItem checks to see if the item is in the dataset
 func (a *AtelierData) IsItem(s string) bool {
 	return a.graph.Contains(s)
 }
@@ -205,6 +204,7 @@ func (a *AtelierData) IsItem(s string) bool {
 	}, 2)
 }*/
 
+//GetItemData returns a copy the Item
 func (a AtelierData) GetItemData(s string) (i Item) {
 	n, ok := a.items[s]
 	//log.Printf("[%v] %v", ok, n)
@@ -215,6 +215,7 @@ func (a AtelierData) GetItemData(s string) (i Item) {
 	return Item{}
 }
 
+//GetRawItemData returns the item information
 func (a AtelierData) GetRawItemData(s string) string {
 	n, _ := a.graph[s]
 	//log.Printf("[%v] %v", ok, n)

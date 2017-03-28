@@ -4,13 +4,26 @@ import (
 	"container/heap"
 )
 
+//QItem is a Struct defining the objects in the min queue
 type QItem struct {
 	value    string
 	priority int
 	index    int
 }
 
+//MinPriorityQueue is a Struct defing the min queue
 type MinPriorityQueue []*QItem
+
+//Init is a Heap.Init helper function
+func (pq *MinPriorityQueue) Init() {
+	heap.Init(pq)
+}
+
+//HPop is a heap.pop helper function
+func (pq *MinPriorityQueue) HPop() *QItem {
+	u := heap.Pop(pq).(*QItem)
+	return u
+}
 
 func (pq MinPriorityQueue) Len() int { return len(pq) }
 
@@ -24,6 +37,7 @@ func (pq MinPriorityQueue) Swap(i, j int) {
 	pq[j].index = j
 }
 
+//Push for heap interface
 func (pq *MinPriorityQueue) Push(x interface{}) {
 	n := len(*pq)
 	item := x.(*QItem)
@@ -31,6 +45,7 @@ func (pq *MinPriorityQueue) Push(x interface{}) {
 	*pq = append(*pq, item)
 }
 
+//Pop for heap interface
 func (pq *MinPriorityQueue) Pop() interface{} {
 	old := *pq
 	n := len(old)

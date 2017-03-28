@@ -27,7 +27,7 @@ func checkAdd(t *testing.T, a AtelierData, i Item) {
 	if !ok {
 		t.Errorf("Item %v is not in graph", i.Name)
 	}
-	for k, _ := range adj {
+	for k := range adj {
 		if !contains(t, i.Types, k) {
 			t.Errorf("Item %v, type %v is not in graph [%v]",
 				i.Name, k, adj)

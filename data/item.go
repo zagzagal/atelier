@@ -1,12 +1,13 @@
 package Data
 
-// Models and item from the atelier series
+// Item models an item from the atelier series
 type Item struct {
 	Name        string   `json:"name"`
 	Ingredients []string `json:"ingredients"`
 	Types       []string `json:"types"`
 }
 
+//Copy returns a copy of an item
 func (i Item) Copy() Item {
 	var j Item
 	j.Name = i.Name
@@ -38,7 +39,7 @@ func compArray(a, b []string) bool {
 	if len(a) != len(b) {
 		return false
 	}
-	for k, _ := range a {
+	for k := range a {
 		if a[k] != b[k] {
 			return false
 		}
@@ -46,7 +47,7 @@ func compArray(a, b []string) bool {
 	return true
 }
 
-// returns the item data as a string
+// String returns the item data as a string
 func (i *Item) String() string {
 	var ans string
 	ans += i.Name
