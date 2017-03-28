@@ -43,6 +43,28 @@ func (a *AtelierData) AddItem(i Item) {
 	}
 }
 
+// Remove an Item from the dataset, and all relationships
+func (a *AtelierData) RemoveItem(i Item) {
+	_, ok := a.items[i.Name]
+	if !ok {
+		return
+	}
+
+	a.graph.RemoveNode(i.Name)
+	for _, v := range a.graph {
+		if v.contains(i.Name) {
+			v.remove(i.Name)
+		}
+	}
+
+	delete(a.items, i.Name)
+}
+
+func (a *AtelierData) UpdateItem(i Item) {
+	a.RemoveItem(i)
+	a.AddItem(i)
+}
+
 func (a AtelierData) dijkstra(s string) (map[string]int, map[string]string) {
 	dist := make(map[string]int)
 	prev := make(map[string]string)
