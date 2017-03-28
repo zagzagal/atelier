@@ -106,7 +106,7 @@ func pathFind(d *ad.AtelierData, bio *bufio.Scanner) {
 	startItem := getInput("Enter the starting Item: ", bio)
 	endItem := getInput("Enter the destination Item: ", bio)
 	path := d.GetPath(strings.Title(startItem), strings.Title(endItem))
-	fmt.Printf("%s\n", path.ToString())
+	fmt.Printf("%s\n", path.String())
 }
 
 func getDataFromFile(bio *bufio.Scanner, def string) (*ad.AtelierData, string) {

@@ -80,7 +80,8 @@ update msg model =
     Response dataResult ->
       case dataResult |> Debug.log "dataResult" of
         Ok data ->
-          ( { model | response = Just data, item = cleanData data }, Cmd.none)
+          ( { model | response = Just data, item = cleanData data }
+            , Cmd.none)
 
         Err error ->
           ( {model | error = Just error}, Cmd.none)
@@ -119,9 +120,9 @@ view model =
     [ Html.node "head" []
       [ Html.node "meta" [ charset "UTF-8"] []
       , Html.node "title" [] [ Html.text "Atelier" ]
-      , Html.node "link" [ href "c:/users/3lb Ipod/elm/atelier/css/normalize.css", rel "stylesheet" ]
+      , Html.node "link" [ href "/css/normalize.css", rel "stylesheet" ]
             []
-      , Html.node "link" [ href "c:/users/3lb Ipod/elm/atelier/css/skeleton.css", rel "stylesheet" ]
+      , Html.node "link" [ href "/css/skeleton.css", rel "stylesheet" ]
             []
       ]
       , Html.div [ class "row"]
@@ -160,7 +161,11 @@ viewItemList items =
 viewItemsList : List ListItem -> Html Msg
 viewItemsList items =
   Html.div [] 
-    (List.map (\l -> Html.button [onClick (ButtonItem l.name)] [Html.text l.name]) items)
+    (List.map (\l -> Html.button [onClick (ButtonItem l.name)] [Html.text l.name]) (List.sortWith itemCompare items))
+
+itemCompare : ListItem -> ListItem -> Order
+itemCompare itemA itemB =
+  compare itemA.name itemB.name
 
 viewItem : Item -> Html Msg
 viewItem item =
@@ -184,7 +189,7 @@ viewList str =
 getItemList : Cmd Msg
 getItemList =
   let
-      url = "http://localhost:8080" ++ "/api/item"
+      url = "/api/item"
   in
      Http.send ListResponse (Http.getString url)
       |> Debug.log "Http.send Item List"
