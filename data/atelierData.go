@@ -5,8 +5,6 @@ package Data
 import ()
 
 const infinite = 99999
-const null = -99999
-const theta = 0
 
 //AtelierData is the main datasctruct for the library
 type AtelierData struct {
@@ -217,7 +215,7 @@ func (a AtelierData) GetItemData(s string) (i Item) {
 
 //GetRawItemData returns the item information
 func (a AtelierData) GetRawItemData(s string) string {
-	n, _ := a.graph[s]
+	n := a.graph[s]
 	//log.Printf("[%v] %v", ok, n)
 	return s + " " + n.String()
 }

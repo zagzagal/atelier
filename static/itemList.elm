@@ -80,8 +80,12 @@ update msg model =
     Response dataResult ->
       case dataResult |> Debug.log "dataResult" of
         Ok data ->
-          ( { model | response = Just data, item = cleanData data }
-            , Cmd.none)
+          ( { model | response = Just data
+            , item = cleanData data
+            , view = ShowItem 
+          }
+            , Cmd.none
+          )
 
         Err error ->
           ( {model | error = Just error}, Cmd.none)
@@ -96,7 +100,8 @@ update msg model =
           ( {model | error = Just error}, Cmd.none)
 
     ButtonItem item->
-      ( { model | view = ShowItem, currentItem = item}, getItemData model)
+      ( { model | currentItem = item}, getItemData 
+        ({ model | currentItem = item}))
 
     ButtonItemList ->
       ( { model | view = ShowItemList}, getItemList)
@@ -124,17 +129,13 @@ view model =
             []
       , Html.node "link" [ href "/css/skeleton.css", rel "stylesheet" ]
             []
+      , Html.node "link" [ href "/css/common.css", rel "stylesheet" ] []
       ]
-      , Html.div [ class "row"]
-        [ Html.button 
-          [ onClick (ButtonItem model.currentItem), class "button-primary six columns"] 
-          [ Html.text "Item View" ]
-        , Html.button 
-          [ onClick ButtonItemList, class "button-primary six columns"] 
-          [ Html.text "Item List View"]
-        ]
       --rawView model 
-      , findView model
+      , Html.div [ class "row" ]
+         [ viewItem model.item
+         , viewItemList model.itemList
+         ]
     ]
 
 findView : Model -> Html Msg
@@ -146,14 +147,14 @@ findView model =
           ShowItemList ->
             viewItemList model.itemList
   in
-     Html.div [ class "container"] [ v ]
+     Html.div [ class "container one-half column"] [ v ]
 
 rawView model =
   Html.text <| toString model
 
 viewItemList : ItemList -> Html Msg
 viewItemList items =
-  Html.div [ class "container" ]
+  Html.div [ class "container one-third column" ]
     [ Html.h1 [] [Html.text "Item List"]
     , viewItemsList items.items 
     ]
@@ -161,7 +162,10 @@ viewItemList items =
 viewItemsList : List ListItem -> Html Msg
 viewItemsList items =
   Html.div [] 
-    (List.map (\l -> Html.button [onClick (ButtonItem l.name)] [Html.text l.name]) (List.sortWith itemCompare items))
+    (List.map (\l -> Html.div [class "row" ] [Html.button 
+        [class "max-full-width", onClick (ButtonItem l.name)] 
+        [Html.text l.name]]) 
+      (List.sortWith itemCompare items))
 
 itemCompare : ListItem -> ListItem -> Order
 itemCompare itemA itemB =
@@ -169,7 +173,7 @@ itemCompare itemA itemB =
 
 viewItem : Item -> Html Msg
 viewItem item =
-    Html.div []
+    Html.div [ class "one-half column pretty"]
     [  Html.h1 [] [Html.text item.name]
     , Html.h2 [] [Html.text "Ingredients"]
     , viewList item.ingredients
@@ -181,9 +185,8 @@ viewList : List String -> Html Msg
 viewList str =
   Html.ul []
     (List.map (\l -> Html.li [] [Html.text l]) str)
---viewItems : Model -> List(Html Msg)
---viewItems model =
-  --List.map viewItem model.items
+
+
 
 -- HTML
 getItemList : Cmd Msg

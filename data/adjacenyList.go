@@ -16,8 +16,7 @@ func (e Edge) String() string {
 type AdjacencyList map[string]subList
 
 func newAdjList() *AdjacencyList {
-	var a AdjacencyList
-	a = make(AdjacencyList)
+	a := make(AdjacencyList)
 	return &a
 }
 
